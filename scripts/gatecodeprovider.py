@@ -5,9 +5,11 @@ import json
 import sys
 from std_msgs.msg import String
 
-global course 
+
 
 def callback(data):
+
+	global course 
 
 	course = data.data
 
@@ -16,9 +18,15 @@ def callbacktwo(data):
 
 		mainUrl = data.data
 
-		sublinkMain = '/obstacleAvoidance/%s/UF' %course
+		#the last part of the link needs to be removed i.e.
+		# the actual link is: /obstacleAvoidance/%s/UF
+		#this is just to test on my server
+
+		sublinkMain = '/obstacleAvoidance/%s/UF/gateCode.json' %course
 
 		url = mainUrl +  sublinkMain
+
+		print(url)
 
 		r = requests.get(url)	
 				
@@ -26,13 +34,13 @@ def callbacktwo(data):
 				
 			gatecode_all = r.json()['gateCode']
 
-			temp = gatecode.split(",")
+			temp = gatecode_all.split(",")
 
-			entrace = temp[0].replace("(","")
+			entrance = temp[0].replace("(","")
 
 			exit = temp[1].replace(")","")
 
-			gatecode = "ENTRANCE:%s EXIT:%s" %(entrance, exit)	
+			gatecode = "{'entrance':'%s','exit':'%s'}" %(entrance, exit)	
 
 			gatecode_pub = rospy.Publisher('gate_code', String, queue_size=10)
 			
@@ -62,7 +70,7 @@ def callbacktwo(data):
 
 			raise rospy.ServiceException('SomethingWrong')
 	
-	except rsopy.ServiceException:
+	except rospy.ServiceException:
 		
 		main()		
 
