@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+
+import rospy
+import sys
+from std_msgs.msg import String
+
+def main():
+	string_pub = rospy.Publisher('gateinfo_request', String, queue_size=10)
+	rospy.init_node('gatecoderequesttrigger', anonymous = True)
+	rate = rospy.Rate(1)
+	while not rospy.is_shutdown():
+		activate_str = "SendRequest"
+		rospy.loginfo(activate_str)
+		string_pub.publish(activate_str)
+		rate.sleep()
+		
+if __name__ == '__main__':
+	try:
+		main()
+	except rospy.ROSIterruptException:
+		pass	
+
+  

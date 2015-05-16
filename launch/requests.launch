@@ -1,0 +1,6 @@
+<launch>
+   	<node pkg="commandrequester" type="urlscanner.py" name="urlprovider" output="screen" />
+	<node pkg="commandrequester" type="dockingbayprovider.py" name="dokcingbayprovider" output="screen" />
+	<node pkg="commandrequester" type="gatecodedecoder.py" name="gatecodedecoder" output="screen" />
+	<node pkg="commandrequester" type="gatecodeprovider.py" name="gatecodeprovider" output="screen" />
+ </launch>
