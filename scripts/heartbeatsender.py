@@ -7,27 +7,46 @@ from datetime import datetime
 from time import strftime
 from std_msgs.msg import String
 
-global mainUrl
-global course
+
+#### Need to figure out a way to get gps data from boat and turn it
+### into decimal degreed to send to server
+
+### need to alsog get current task
 
 
-def callback(data):
+def StoreServerUrl(serverUrl):
 
-	mainUrl = data.data
+	global mainUrl
 
-def callbacktwo(data):
+	mainUrl = serverUrl.data
+
+rospy.Subscriber('main_server_url', String, storeMainServerUrl)
+
+def StoreCourseInfo(courseInfo):
+
+	global course
 	
-	course = data.data	
+	course = courseInfo.data
 
-def callbackthree(data):
+rospy.Subscriber('course_code', String, StoreCourseInfo)
+
+def GetGpsData(gpsPos):
+
+	###Need to format gpsData so it is latitude, longitude
+
+	global gpsData 
+
+	gpsData = gpsPos.data
+
+rospy.Subscriber('gps_data', String, GetGpsData)	
+
+def SendHeartBeat():
 
 	while not rospy.is_shutdown():
 
 		#Gps data needs to be in decimal degrees
 		#being published to the topic 
 		#preferably as "latitude,longitde" ###Notice comma###
-
-		gpsData = data.data
 		
 		gpsDataList = gpsData.split(",")
 
@@ -79,13 +98,7 @@ def main():
 	
 	rospy.init_node('heartbeat')
 
-	rospy.Subscriber('main_server_url', String, callback)
-
-	rospy.Subscriber('course_code', String, callbacktwo)
-
-	rospy.Subscriber('gps_data', String, callbackthree)
-	
-	 
+	SendHeartBeat()
 	
 	rospy.spin()
 
@@ -95,5 +108,5 @@ if __name__ == '__main__':
 		
 		main()
 	
-	except (rospy.ROSInterruptException, IndexError, NameError, rospy.ServiceException) as e:
+	except rospy.ROSInterruptException:
 		pass
