@@ -20,7 +20,6 @@ def StoreServerUrl(serverUrl):
 
 	mainUrl = serverUrl.data
 
-rospy.Subscriber('main_server_url', String, storeMainServerUrl)
 
 def StoreCourseInfo(courseInfo):
 
@@ -28,21 +27,20 @@ def StoreCourseInfo(courseInfo):
 	
 	course = courseInfo.data
 
-rospy.Subscriber('course_code', String, StoreCourseInfo)
-
-def GetGpsData(gpsPos):
-
-	###Need to format gpsData so it is latitude, longitude
-
-	global gpsData 
-
-	gpsData = gpsPos.data
-
-rospy.Subscriber('gps_data', String, GetGpsData)	
 
 def SendHeartBeat():
 
 	while not rospy.is_shutdown():
+
+		#this will get the gps data from the boat
+
+		def GetGpsData(gpsPos):
+
+			###Need to format gpsData so it is latitude, longitude
+
+			global gpsData 
+
+			gpsData = gpsPos.data
 
 		#Gps data needs to be in decimal degrees
 		#being published to the topic 
@@ -70,13 +68,17 @@ def SendHeartBeat():
 
 		url = mainUrl +  sublinkMain
 
+		#payload to send to server
+
 		payload = '{"timestamp":"%s", "challenge":"%s","position":{"datum":"WGS84","latitude":"%s","longitude":"%s"}}' % (timeStamp2, currentChallenge, latitudeFinal,longitudeFinal)
 
 		heartbeat_pub = rospy.Publisher('gps_heartbeat', String, queue_size=10)
 		
+		#1 time per second
+		
 		rate = rospy.Rate(1)
 		
-		r = requests.post(url, data = payload)
+		r = requests.post(url, data = json.dumps(payload))
 
 		if(r.status_code == 200 and r.json()['success'] == 'true'):
 
@@ -97,6 +99,14 @@ def SendHeartBeat():
 def main():
 	
 	rospy.init_node('heartbeat')
+
+	rospy.Subscriber('main_server_url', String, storeMainServerUrl)
+
+	rospy.Subscriber('gps_data', String, GetGpsData)
+
+	rospy.Subscriber('course_code', String, StoreCourseInfo)
+
+	time.sleep(5)
 
 	SendHeartBeat()
 	
