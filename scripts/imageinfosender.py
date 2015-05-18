@@ -3,111 +3,125 @@ import rospy
 import sys
 import requests
 import json
+import os
+import time
 from std_msgs.msg import String
 
-global course
-global shape
-global imageID
 
-def callback(data):
+def StoreCourseInfo(courseInfo):
 
 	#receive the current course e.g. "courseA"
-	# and store it in "course"
+	#and store it in "course"
 
-	course = data.data
+	global course
 
-def callbacktwo(data):
+	try:
 
-	#receive image ID and store it in "imageID"
+		course = courseInfo.data
 
-	imageID = data.data
+	except NameError:
+		pass	
 
-def callbackthree(data):	
+def StoreServerUrl(data):
 
-	# receive the shape and store it in "shape"
+	#receive server url and store it in
+	#mainUrl
 
-	shape = data.data	
+	global mainUrl
 
-def callbackfour(data):
+	try:
 
-	mainUrl = data.data
+		mainUrl = data.data
 
-	sublinkMain = '/interop/report/%s/UF' %course
+	except NameError:
+		pass	
 
-	#creating url
+def SendImageInfo(imageName, imageShape):
 
-	url = mainUrl +  sublinkMain
-	
+	imageName = imageName
+
+	shape = imageShape
+
+	postImageLink = '/interop/image/%s/UF' %course
+
+	sendImageInfoLink = '/interop/report/%s/UF' %course
+
+	#creating urls
+
+	putImageOnServerUrl = mainUrl +  postImageLink
+
+	sendImageInfoUrl = mainUrl +  sendImageInfoLink
+
+	###################################### put image on server #############################################
+
+	global path
+
+
+	path = os.path.join(os.path.expanduser('~'), 'output', 'ServerImages', imageName)
+
+
+	files = {'file': (imageName, open(path, 'rb'), 'multipart/mixed', {'Expires': '0'})}
+
+	#Send image to server and get an image ID.
+	# create request #2 (POST), put image file on server
+
+	request1 = requests.post(putImageOnServerUrl, files=files, verify=False)
+
+	#getting image ID from server. Will be a json structure like:
+	#{"id":"a4aa8224-07f2-4b57-a03a-c8887c2505c7"}
+	# wait two second... just for the heck of it
+	time.sleep(2)
+
+	imageID = request1.json['id']
+
+
+	#########################################################################################################
+
+	######################################## send image information #########################################	
+			
 	#ready payload to send to server..
 
-	payload = '{"course": "%s","team":"UF","shape":"%s","imageID":"%s"}' %(course, shape, imageID)
 
-	# create request object
 
-	r = requests.post(url, data = payload)
+	payload = '{"course":"%s","team":"UF","shape":"%s","imageID":"%s"}' %(course, shape, imageID)
 
-	#decode json response froms server
+	# create request #2, post image info json structure
 
-	satus = r.json()['success']
+	request2 = requests.post(url, data = json.dumps(payload))
 
-	# define topic for publishing status
+	#decode json response from server
 
-	status_pub = rospy.Publisher('image_rec_success_status', String, queue_size=10)
+	status = r.json()['success']
 
-	if status == 'false':
+	#return status from server to know whether the right
+	#image was sent
 
-		rospy.loginfo(status)
-
-		status_pub.publish(status)
-
-		return
+	return status
 
 # if false is returned by the server, i.e. the image shape was not correctly
-# identified, publish  to the topic and let the boat know
-# so the image is processed again and exit		
+# identified, return said status so that node in charge of image 
+# analysing send another image name
 
-	else:	
-
-		while not rospy.is_shutdown():
-
-			rospy.loginfo(status)
-
-			# we're all good, publish true forever
-
-			status_pub.publish(status)
-
-
-def main():
-
-	rospy.init_node('imageinfopublisher')
-
-	######## TOPIC SUBSCRIPTION ##########
-
-	rospy.Subscriber('course_code', String, callback)
-
-	# receives the image id sent by the server
-	# when the picture taken by the drone was uploaded. 
-
-	rospy.Subscriber('image_id', String, callbacktwo)
-
-	# receives the shape from the photo the drone took and the boar
-	# decoded. e.g. "E" 
-
-	rospy.Subscriber('image_shape', String, callbackthree)
-
-	#receives the main url to which the inforation regarding the image
-	#will be posted
-
-	rospy.Subscriber('main_server_url', String, callbackfour)
+def send_image_info_server():
 
 	
+	rospy.init_node('send_image_info_server')
+
+	rospy.Subscriber('course_code', String, StoreCourseInfo)
+
+	rospy.Subscriber('main_server_url', String, StoreServerUrl)
+	
+	s = rospy.Service('send_image_info', ImageInfo, SendImageInfo)
+
+	print('ready to receive image info')
+
+	time.sleep(5)
+
 	rospy.spin()
 
 if __name__ == '__main__':
 	
-	try:
+
+	send_image_info_server()
 	
-		main()
 	
-	except (rospy.ROSInterruptException, IndexError, NameError, rospy.ServiceException) as e:
-		pass	

@@ -3,6 +3,7 @@ import rospy
 import requests
 import json
 import sys
+import time
 from std_msgs.msg import String
 
 
@@ -79,6 +80,8 @@ def main():
 	rospy.init_node('gatecodeprovider')
 
 	rospy.Subscriber('course_code', String, callback)
+
+	time.sleep(5)
 
 	rospy.Subscriber('main_server_url', String, callbacktwo)
 

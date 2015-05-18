@@ -3,19 +3,38 @@ import rospy
 import requests
 import json
 import sys
+import time
 from std_msgs.msg import String
 
 global course
+global mainUrl
+
 
 def callback(data):
 
-	course = data.data
+	global course
+
+	try:
+		
+		course = data.data
+	
+	except NameError:
+		pass
 
 def callbacktwo(data):
-	
-	mainUrl = data.data
 
-	sublinkMain = '/automatedDocking/%s/UF' %course
+	global mainUrl
+	
+	try:
+
+		mainUrl = data.data
+
+	except NameError:
+		pass	
+
+def postDockingSequence():	
+
+	sublinkMain = '/automatedDocking/%s/UF/docking.json' %course
 
 	url = mainUrl +  sublinkMain
 
@@ -39,35 +58,19 @@ def callbacktwo(data):
 			
 			secondDockSymbol = secondDockInfo['symbol']
 			
-			secondDockColor =  secondDockInfo['color'] 
+			secondDockColor =  secondDockInfo['color']
+
+			infoToPublish = "{'firstDockSymbol': '%s','firstDockColor':'%s','secondDockSymbol':'%s','secondDockColor':'%s'}" %(firstDockSymbol, firstDockColor,secondDockSymbol,secondDockColor) 
 			
-			dockingBay1_symbol_pub = rospy.Publisher('docking_bay1_symbol', String, queue_size=10)
-			
-			dockingBay1_color_pub = rospy.Publisher('docking_bay1_color', String, queue_size=10)
-			
-			dockingBay2_symbol_pub = rospy.Publisher('docking_bay2_symbol', String, queue_size=10)
-			
-			dockingBay2_color_pub = rospy.Publisher('docking_bay2_color', String, queue_size=10)
+			docking_sequence_pub = rospy.Publisher('docking_bay_sequence', String, queue_size=10)
 			
 			rate = rospy.Rate(1)
 			
 			while not rospy.is_shutdown():
 				
-				rospy.loginfo(firstDockSymbol)
+				rospy.loginfo(infoToPublish)
 				
-				rospy.loginfo(firstDockColor)
-				
-				rospy.loginfo(secondDockSymbol)
-				
-				rospy.loginfo(secondDockColor)
-				
-				dockingBay1_symbol_pub.publish(firstDockSymbol)
-				
-				dockingBay1_color_pub.publish(firstDockColor)
-				
-				dockingBay2_symbol_pub.publish(secondDockSymbol)
-				
-				dockingBay2_color_pub.publish(secondDockColor)
+				docking_sequence_pub.publish(infoToPublish)
 				
 				rate.sleep()
 		
@@ -95,6 +98,10 @@ def main():
 	rospy.Subscriber('course_code', String, callback)
 
 	rospy.Subscriber('main_server_url', String, callbacktwo)
+
+	time.sleep(5)
+
+	postDockingSequence()
 	
 	rospy.spin()
 
@@ -104,7 +111,7 @@ if __name__ == '__main__':
 	
 		main()
 	
-	except (rospy.ROSInterruptException, rospy.ServiceException) as e:
+	except rospy.ROSInterruptException:
 
-			pass		
+		pass		
 
