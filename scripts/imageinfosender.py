@@ -56,6 +56,7 @@ def SendImageInfo(imageName, imageShape):
 
 	global path
 
+	#find image on path where it is stored
 
 	path = os.path.join(os.path.expanduser('~'), 'output', 'ServerImages', imageName)
 
@@ -63,13 +64,13 @@ def SendImageInfo(imageName, imageShape):
 	files = {'file': (imageName, open(path, 'rb'), 'multipart/mixed', {'Expires': '0'})}
 
 	#Send image to server and get an image ID.
-	# create request #2 (POST), put image file on server
+	#create request #1 (POST), put image file on server
 
 	request1 = requests.post(putImageOnServerUrl, files=files, verify=False)
 
 	#getting image ID from server. Will be a json structure like:
 	#{"id":"a4aa8224-07f2-4b57-a03a-c8887c2505c7"}
-	# wait two second... just for the heck of it
+	# wait two seconds... just for the heck of it
 	time.sleep(2)
 
 	imageID = request1.json['id']
@@ -81,11 +82,9 @@ def SendImageInfo(imageName, imageShape):
 			
 	#ready payload to send to server..
 
-
-
 	payload = '{"course":"%s","team":"UF","shape":"%s","imageID":"%s"}' %(course, shape, imageID)
 
-	# create request #2, post image info json structure
+	#create request #2, post image info json structure
 
 	request2 = requests.post(url, data = json.dumps(payload))
 
@@ -100,7 +99,7 @@ def SendImageInfo(imageName, imageShape):
 
 # if false is returned by the server, i.e. the image shape was not correctly
 # identified, return said status so that node in charge of image 
-# analysing send another image name
+# analyzing send another image name
 
 def send_image_info_server():
 

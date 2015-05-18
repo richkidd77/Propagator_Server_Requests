@@ -43,6 +43,9 @@ def callbacktwo(data):
 
 			gatecode = "{'entrance':'%s','exit':'%s'}" %(entrance, exit)	
 
+			#it publishes a dictioanry as a string type to the topic
+			# e.g {'etrance':'3','exit':'Y'}
+
 			gatecode_pub = rospy.Publisher('gate_code', String, queue_size=10)
 			
 			rate = rospy.Rate(1)

@@ -62,6 +62,9 @@ def postDockingSequence():
 
 			infoToPublish = "{'firstDockSymbol': '%s','firstDockColor':'%s','secondDockSymbol':'%s','secondDockColor':'%s'}" %(firstDockSymbol, firstDockColor,secondDockSymbol,secondDockColor) 
 			
+			#it publishes a dictionary to topic as a string type
+			# e.g. {'firstDockSymbol':'cruciform'................}
+
 			docking_sequence_pub = rospy.Publisher('docking_bay_sequence', String, queue_size=10)
 			
 			rate = rospy.Rate(1)
@@ -94,10 +97,16 @@ def postDockingSequence():
 def main():
 	
 	rospy.init_node('dokcingbayprovider')
+
+	#subscrie to 'course_code'
 	
 	rospy.Subscriber('course_code', String, callback)
 
+	#subscribe to 'main_server_url'
+
 	rospy.Subscriber('main_server_url', String, callbacktwo)
+
+	#wait five seconds 
 
 	time.sleep(5)
 

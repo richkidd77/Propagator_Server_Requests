@@ -32,7 +32,17 @@ def SendHeartBeat():
 
 	while not rospy.is_shutdown():
 
-		#this will get the gps data from the boat
+		##################################################
+
+		#will defining these methods here create an error?
+		#need to test
+
+		def GerCurrentTask(currentChallenge):
+
+			global currentChallenge
+
+			currentChallenge = currentChallenge.data
+
 
 		def GetGpsData(gpsPos):
 
@@ -43,8 +53,13 @@ def SendHeartBeat():
 			gpsData = gpsPos.data
 
 		#Gps data needs to be in decimal degrees
-		#being published to the topic 
 		#preferably as "latitude,longitde" ###Notice comma###
+
+		#######################################################
+
+		#from here down the string 'latitude,longitude'
+		#is taken in, parsed, fromatted and sent to server
+		#along with time and current task
 		
 		gpsDataList = gpsData.split(",")
 
