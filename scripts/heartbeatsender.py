@@ -37,7 +37,7 @@ def SendHeartBeat():
 		#will defining these methods here create an error?
 		#need to test
 
-		def GerCurrentTask(currentChallenge):
+		def GetCurrentTask(currentChallenge):
 
 			global currentChallenge
 
@@ -120,6 +120,8 @@ def main():
 	rospy.Subscriber('gps_data', String, GetGpsData)
 
 	rospy.Subscriber('course_code', String, StoreCourseInfo)
+	
+	rospy.Subscriber('current_mission', String, GetCurrentChallenge) #  <------------- EDIT R.K.
 
 	time.sleep(5)
 
